@@ -6,7 +6,7 @@ namespace NashSoft.BehaviourRecorder.PostSharp
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RecordButAttribute : RecordAttribute
     {
-        public RecordButAttribute() : base(EventType.ButStarted, EventType.ButEnded) { }
-        public RecordButAttribute(string name) : base(name, EventType.ButStarted, EventType.ButEnded) { }
+        public RecordButAttribute() : base(EventType.But) { }
+        public RecordButAttribute(string name) : base(name, EventType.But) { }
     }
 }

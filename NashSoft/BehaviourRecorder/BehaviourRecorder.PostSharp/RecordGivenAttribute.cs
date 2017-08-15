@@ -6,7 +6,7 @@ namespace NashSoft.BehaviourRecorder.PostSharp
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RecordGivenAttribute : RecordAttribute
     {
-        public RecordGivenAttribute() : base(EventType.GivenStarted, EventType.GivenEnded) { }
-        public RecordGivenAttribute(string name) : base(name, EventType.GivenStarted, EventType.GivenEnded) { }
+        public RecordGivenAttribute() : base(EventType.Given) { }
+        public RecordGivenAttribute(string name) : base(name, EventType.Given) { }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using PostSharp.Aspects;
 
 namespace NashSoft.BehaviourRecorder.PostSharp
@@ -6,21 +7,18 @@ namespace NashSoft.BehaviourRecorder.PostSharp
     [Serializable]
     public class RecordAttribute : OnMethodBoundaryAspect
     {
-        private readonly EventType _endedEvent;
-        private readonly EventType _startedEvent;
+        private readonly EventType _eventType;
 
-        public RecordAttribute(string name, EventType startedEvent, EventType endedEvent)
+        public RecordAttribute(string name, EventType eventType)
         {
-            _endedEvent = endedEvent;
-            _startedEvent = startedEvent;
+            _eventType = eventType;
             IsNameSet = true;
             Name = name;
         }
 
-        public RecordAttribute(EventType startedEvent, EventType endedEvent)
+        public RecordAttribute(EventType eventType)
         {
-            _startedEvent = startedEvent;
-            _endedEvent = endedEvent;
+            _eventType = eventType;
             IsNameSet = false;
             Name = String.Empty;
         }
@@ -31,46 +29,53 @@ namespace NashSoft.BehaviourRecorder.PostSharp
 
         public sealed override void OnEntry(MethodExecutionArgs args)
         {
-            RunFlow(_startedEvent, args.Method.Name);
+            GenerateAndLog(EventSubType.Started, args.Method.Name);
         }
 
-        private void RunFlow(EventType typeOfEvent, string methodName)
+        private void GenerateAndLog(EventSubType subType, string methodName)
         {
-            var testingEvent = CreateEvent(typeOfEvent, methodName);
-            var processedEvent = ProcessEvent(testingEvent);
-            LogProcessedEvent(processedEvent, testingEvent.TestSketch);
+            var testingEvent = CreateEvent(subType, methodName);
+            LogEvent(testingEvent, testingEvent.TestSketch);
         }
 
         public sealed override void OnExit(MethodExecutionArgs args)
         {
-            RunFlow(_endedEvent, args.Method.Name);
+            GenerateAndLog(EventSubType.Ended, args.Method.Name);
         }
 
-        private TestingEvent CreateEvent(EventType typeOfEvent, string methodName)
+        private TestingEvent CreateEvent(EventSubType subType, string methodName)
         {
             var testSketchProvider = BehaviourRecorderPluginFactory<ITestSketchProvider>.CreatePlugin();
             TestingEvent testingEvent = new TestingEvent();
             testingEvent.TestSketch = testSketchProvider.GetTestSketch();
             testingEvent.EventCausingAttribute = this;
-            testingEvent.EventType = typeOfEvent;
+            testingEvent.EventType = _eventType;
+            testingEvent.EventSubType = subType;
             testingEvent.MethodName = methodName;
             //TODO testingEvent.ParameterTypeValuePairs;
             //TODO testingEvent.ParameterTypeValuePairsToBeLogged;
             return testingEvent;
         }
 
-        private static ProcessedEvent ProcessEvent(TestingEvent testingEvent)
-        {
-            var eventProcessor = BehaviourRecorderPluginFactory<IEventProcessor>.CreatePlugin();
-            var processedEvent = eventProcessor.ProcessEvent(testingEvent);
-            return processedEvent;
-        }
-
-        private static void LogProcessedEvent(ProcessedEvent processedEvent, TestSketch testSketch)
+        private static void LogEvent(TestingEvent testingEvent, TestSketch testSketch)
         {
             var eventLogger = BehaviourRecorderPluginFactory<IProcessedEventSink>.CreatePlugin();
-            //TODO the 0 in the argument has to be corrected
-            eventLogger.Sink(processedEvent, testSketch.UniqueTestCaseIdentifier, 0);
+            int eventCount = EventSerialNumberGenerator.GenerateSerialNumber(testSketch.UniqueTestCaseIdentifier);
+            eventLogger.Sink(testingEvent, testSketch.UniqueTestCaseIdentifier, eventCount);
+        }
+    }
+
+    public static class EventSerialNumberGenerator
+    {
+        public static Dictionary<string, int> eventCountingDictionary = new Dictionary<string, int>();
+        public static int GenerateSerialNumber(string uniqueTestCaseIdentifier)
+        {
+            if(!eventCountingDictionary.ContainsKey(uniqueTestCaseIdentifier))
+                eventCountingDictionary.Add(uniqueTestCaseIdentifier, 0);
+            var count = eventCountingDictionary[uniqueTestCaseIdentifier];
+            count++;
+            eventCountingDictionary[uniqueTestCaseIdentifier] = count;
+            return count;
         }
     }
 }

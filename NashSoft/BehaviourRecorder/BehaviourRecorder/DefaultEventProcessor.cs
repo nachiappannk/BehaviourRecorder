@@ -9,8 +9,11 @@ namespace NashSoft.BehaviourRecorder
             var methodName = testingEvent.MethodName;
             var methodNameAsSentence = PascalCaseToSentenceConverter.Convert(methodName);
             var saidVariableConvertedSentence = SaidVariableToBracketedVariableConverter.Convert(methodNameAsSentence);
-            processedEvent.Lines.Add(saidVariableConvertedSentence);
+            if(testingEvent.EventSubType == EventSubType.Started)
+                processedEvent.Lines.Add(saidVariableConvertedSentence);
             return processedEvent;
         }
+
+        
     }
 }

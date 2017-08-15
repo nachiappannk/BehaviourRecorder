@@ -2,6 +2,6 @@ namespace NashSoft.BehaviourRecorder
 {
     public interface IProcessedEventSink
     {
-        void Sink(ProcessedEvent processedEvent, string uniqueTestCaseIdentifier, int eventCount);
+        void Sink(TestingEvent testingEvent, string uniqueTestCaseIdentifier, int eventCount);
     }
 }

@@ -8,11 +8,11 @@ namespace NashSoft.BehaviourRecorder.PostSharp
     [Serializable]
     public sealed class RecordScenarioAttribute : RecordAttribute
     {
-        public RecordScenarioAttribute(string name) : base(EventType.ScenarioStarted, EventType.ScenarioEnded)
+        public RecordScenarioAttribute(string name) : base(EventType.Scenario)
         {
         }
 
-        public RecordScenarioAttribute():base(EventType.ScenarioStarted, EventType.ScenarioEnded)
+        public RecordScenarioAttribute():base(EventType.Scenario)
         {
         }
     }
